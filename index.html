@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat App</title>
+  <style>
+    /* Reset body margin and padding */
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      background-color: #f0f0f0;
+      height: 100%;
+    }
+
+    #chat-container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%; /* Full screen */
+      max-width: 600px;
+      background-color: #ffffff;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    #chat-box {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background-color: #ffffff;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      max-width: 80%;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .user {
+      background-color: #007bff;
+      color: black;
+      align-self: flex-end;
+    }
+
+    .bot {
+      background-color: #f1f1f1;
+      color: black;
+      align-self: flex-start;
+    }
+
+    .bot-profile {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+
+    #input-container {
+      display: absolute;
+      margin-bottom:0px;
+      padding: 15px;
+      border-top: 1px solid #ccc;
+      background-color: #ffffff;
+    }
+
+    #chat-input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 35px;
+      font-size: 16px;
+      outline: none;
+      background-color: #fafafa;
+    }
+
+    #send-btn {
+      padding: 12px 20px;
+      margin-left: 10px;
+      background-color: blue;
+      color: white;
+      border: none;
+      border-radius: 35px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #send-btn:hover {
+      background-color: #0056b3;
+    }
+
+    #chat-box::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #chat-box::-webkit-scrollbar-thumb {
+      background-color: #cccccc;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <div id="chat-box"></div>
+    <div id="input-container">
+      <input id="chat-input" type="text" placeholder="Type a message..." />
+      <button id="send-btn">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById("chat-box");
+    const chatInput = document.getElementById("chat-input");
+    const sendBtn = document.getElementById("send-btn");
+
+    // Predefined replies
+    const botReplies = {
+      hi: "Hi there! How’s your day going?",
+      hello: "Hey! 😊 What’s up?",
+      "how are you": "I’m good! Just happy to chat with you. What about you?",
+      "what’s your name": "You can call me ChatBuddy 😄 What about you?",
+      "where are you from": "I’m from the virtual world 🌍. What about you?",
+      "what do you do": "I’m here to make chatting fun! What about you?",
+      "do you like movies": "Yes, I love them! What’s your favorite movie?",
+      "do you like traveling": "Absolutely! Where would you go if you could?",
+      "good night": "Good night! Sweet dreams 😊",
+      "good morning": "Good morning! Hope your day is as amazing as you are ☀️",
+      "tell me a joke": "Sure! Why don’t skeletons fight each other? Because they don’t have the guts! 😄",
+      "do you have hobbies": "I like chatting with awesome people like you! What’s your hobby?",
+      "are you single": "Haha, I’m just a bot, but I’m here for you! 😊",
+      "do you like me": "Of course! You’re amazing 🥰",
+      bye: "Goodbye! Can’t wait to chat again soon!",
+      thanks: "You’re welcome! 😊",
+      "i love you": "Aww, that’s so sweet! Love you too ❤️",
+      default: "Hmm, interesting! Tell me more about that."
+    };
+
+    // Load chat history from localStorage if available
+    const chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
+
+    // Display chat history on page load
+    chatHistory.forEach(message => addMessage(message.text, message.sender));
+
+    sendBtn.addEventListener("click", sendMessage);
+
+    function sendMessage() {
+      const userMessage = chatInput.value.trim().toLowerCase();
+      if (!userMessage) return;
+
+      // Add user message to chat
+      addMessage(userMessage, "user");
+      chatInput.value = "";
+
+      // Save user message to localStorage
+      chatHistory.push({ text: userMessage, sender: "user" });
+      localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+
+      // Add a delay of 3 seconds before bot replies
+      setTimeout(() => {
+        const botReply = getBotReply(userMessage);
+        addMessage(botReply, "bot");
+
+        // Save bot reply to localStorage
+        chatHistory.push({ text: botReply, sender: "bot" });
+        localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+      }, 3000);
+    }
+
+    function getBotReply(message) {
+      // Check for predefined replies
+      for (const key in botReplies) {
+        if (message.includes(key)) {
+          return botReplies[key];
+        }
+      }
+      return botReplies.default;
+    }
+
+    function addMessage(text, sender) {
+      const messageDiv = document.createElement("div");
+      messageDiv.className = `message ${sender}`;
+
+      // Create bot profile picture
+      if (sender === "bot") {
+        const botProfilePic = document.createElement("img");
+        botProfilePic.className = "bot-profile";
+        botProfilePic.src = "https://via.placeholder.com/35"; // Use a placeholder or a real profile picture URL
+        messageDiv.appendChild(botProfilePic);
+      }
+
+      const messageText = document.createElement("span");
+      messageText.textContent = text;
+      messageDiv.appendChild(messageText);
+      chatBox.appendChild(messageDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  </script>
+</body>
+</html>
